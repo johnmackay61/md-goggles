@@ -4,10 +4,9 @@
     <title>MD Goggles</title>
   </head>
   <script>
-    let file = window.location.hash.substr(1);
-    fetch (file)
-      .then(x => x.text())
-      .then(y => document.getElementById("content").innerHTML = y);
+    let md_file = window.location.hash.substr(1);
+    fetch (md_file)
+      .then(markdownText =>  markdownText.text());
     
     function parseMarkdown(markdownText) {
     const htmlText = markdownText
