@@ -18,10 +18,7 @@
     
     return htmlText.trim()
     }
-    const text = `
-    # Hello World
-    **This is a bold text**
-    `
+    const text = window.location.hash.substr(1);
   </script>
   <body onload="parseMarkdown">
     <p>Menu bar goes here...</p>
