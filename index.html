@@ -3,11 +3,10 @@
   <head>
     <title>MD Goggles</title>
   </head>
-  <script>
-    let md_file = window.location.hash.substr(1);
-    fetch (md_file)
-      .then(markdownText =>  markdownText.text());
-    
+  <body>
+    <div ide="content"></div>
+    <script defer>
+      
     function parseMarkdown(markdownText) {
     const htmlText = markdownText
     .replace(/^### (.*$)/gim, '<h3>$1</h3>')
@@ -22,12 +21,13 @@
     
     return htmlText.trim()
     }
-  </script>
-  <body onload="parseMarkdown">
-    <p>Menu bar goes here...</p>
-    <div id="content">
-    <script>document.write(parseMarkdown(text))</script>
-    </div>
-    <p>Footer goes here...</p>
+      var url = window.location.hash.substr(2);
+      fetch(url)
+        .then(response => response.blob())
+        .then(blob => blob.text())
+        .then(markdown => {
+          document.getElementById("content").innerHTML = marked.parse(parseMarkdown);
+        });
+    </script>
   </body>
 </html>
