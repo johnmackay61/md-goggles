@@ -3,33 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <title>MD-Goggles</title>
+  <style>
+    /* Basic styling for the menu and content */
+    body {
+      display: flex;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+    nav {
+      width: 250px;
+      padding: 1em;
+      background-color: #f5f5f5;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+    nav h2 {
+      margin-top: 0;
+    }
+    nav ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    nav li {
+      margin-bottom: 0.5em;
+    }
+    nav li a {
+      text-decoration: none;
+      color: #333;
+    }
+    nav li ul {
+      padding-left: 1em;
+      margin-top: 0.5em;
+    }
+    #content {
+      flex: 1;
+      padding: 2em;
+      overflow-y: auto;
+    }
+  </style>
 </head>
 <body>
+  <nav>
+    <h2>Menu</h2>
+    <ul id="menu">
+      <!-- Menu items will be injected here -->
+    </ul>
+  </nav>
   <div id="content">Loading...</div>
-  
+
   <!-- Include marked.js for Markdown parsing -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <!-- Include DOMPurify for sanitizing HTML to prevent XSS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.3.10/purify.min.js"></script>
   
   <script>
+    // Define the structured menu data
+    const menuData = [
+      { name: "Home", path: "index" },
+      { name: "About", path: "about" },
+      { name: "Documentation", path: "docs/index" },
+      { 
+        name: "Tutorials", 
+        subMenu: [
+          { name: "Tutorial 1", path: "tutorials/tutorial1" },
+          { name: "Tutorial 2", path: "tutorials/tutorial2" }
+        ]
+      }
+    ];
+
+    // Function to render the menu into the <ul id="menu"> element
+    function renderMenu(menuData) {
+      const menuContainer = document.getElementById('menu');
+      menuContainer.innerHTML = '';
+      menuData.forEach(item => {
+        let li = document.createElement('li');
+        if (item.subMenu && Array.isArray(item.subMenu)) {
+          // Parent item without direct link
+          let span = document.createElement('span');
+          span.textContent = item.name;
+          li.appendChild(span);
+          // Create a nested list for submenu items
+          let ul = document.createElement('ul');
+          item.subMenu.forEach(sub => {
+            let subLi = document.createElement('li');
+            let a = document.createElement('a');
+            a.textContent = sub.name;
+            a.href = "#!/" + sub.path;
+            subLi.appendChild(a);
+            ul.appendChild(subLi);
+          });
+          li.appendChild(ul);
+        } else {
+          let a = document.createElement('a');
+          a.textContent = item.name;
+          a.href = "#!/" + item.path;
+          li.appendChild(a);
+        }
+        menuContainer.appendChild(li);
+      });
+    }
+
+    // Function to convert a string to Title Case
+    function toTitleCase(str) {
+      return str.replace(/\b\w+/g, word =>
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      );
+    }
+
+    // Function to update the document title based on the hashbang URL
+    function updateTitleFromHash() {
+      var hash = window.location.hash;
+      if (hash.startsWith("#!/")) {
+        // Extract the path after "#!/"
+        var page = hash.slice(3);
+        // Remove any trailing slash (for directories)
+        if (page.endsWith("/")) {
+          page = page.slice(0, -1);
+        }
+        // Split the path by '/' and take the last segment as the file name
+        var segments = page.split('/');
+        var fileName = segments[segments.length - 1] || 'Home';
+        // Replace dashes and underscores with spaces
+        fileName = fileName.replace(/[-_]/g, ' ');
+        // Convert to Title Case and update the document title
+        document.title = toTitleCase(fileName);
+      } else {
+        document.title = 'Home';
+      }
+    }
+
     // Function to load and render the Markdown file based on the hashbang URL
     function loadMarkdownPage() {
       var hash = window.location.hash;
       if (hash.startsWith("#!/")) {
-        // Remove "#!/" to get the page path
         var page = hash.slice(3);
         var url;
-        
-        // If no page is specified, default to "index.md"
         if (page === "") {
           url = "index.md";
         } else {
-          // If the page ends with a slash, assume it's a directory and append "index.md"
+          // If the page ends with a slash, load index.md in that directory
           if (page.endsWith("/")) {
             url = page + "index.md";
           } else {
-            // If there's no dot, assume a file name without extension and add ".md"
+            // If there is no file extension, assume .md
             if (!page.includes(".")) {
               url = page + ".md";
             } else {
@@ -38,12 +156,11 @@
           }
         }
         
-        // Function to fetch and render Markdown content
         function fetchMarkdown(urlToFetch) {
           fetch(urlToFetch)
             .then(response => {
               if (!response.ok) {
-                // If the Markdown file is not found and it's not already the 404 page, load 404.md
+                // If file not found and not already 404, try loading 404.md
                 if (urlToFetch !== "404.md") {
                   return fetchMarkdown("404.md");
                 } else {
@@ -53,9 +170,8 @@
               return response.text();
             })
             .then(markdown => {
-              // Parse Markdown to HTML using marked.js
+              // Parse Markdown to HTML and sanitize it
               var rawHtml = marked.parse(markdown);
-              // Sanitize the generated HTML with DOMPurify to prevent XSS attacks
               var cleanHtml = DOMPurify.sanitize(rawHtml);
               document.getElementById("content").innerHTML = cleanHtml;
             })
@@ -68,46 +184,18 @@
       }
     }
 
-    // Listen for hash changes and page load to render the corresponding Markdown
-    window.addEventListener("hashchange", loadMarkdownPage);
-    window.addEventListener("load", loadMarkdownPage);
-  </script>
-  
-  <script>
-  // Function to convert a string to Title Case
-  function toTitleCase(str) {
-    return str.replace(/\b\w+/g, function(word) {
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    // Render the menu once the page loads
+    renderMenu(menuData);
+    
+    // Update the title and load the Markdown page on page load and when the hash changes
+    window.addEventListener("load", () => {
+      updateTitleFromHash();
+      loadMarkdownPage();
     });
-  }
-
-  // Function to update the document title based on the hashbang URL
-  function updateTitleFromHash() {
-    var hash = window.location.hash;
-    if (hash.startsWith("#!/")) {
-      // Extract the path after "#!/"
-      var page = hash.slice(3);
-      // Remove any trailing slash (for directories)
-      if (page.endsWith("/")) {
-        page = page.slice(0, -1);
-      }
-      // Split the path by '/' and take the last segment as the file name
-      var segments = page.split('/');
-      var fileName = segments[segments.length - 1] || 'Home';
-      // Replace dashes and underscores with spaces for readability
-      fileName = fileName.replace(/[-_]/g, ' ');
-      // Convert to Title Case and update the document title
-      document.title = toTitleCase(fileName);
-    } else {
-      // Default title when no hashbang is present
-      document.title = 'Home';
-    }
-  }
-
-  // Update the title on page load and when the hash changes
-  window.addEventListener("load", updateTitleFromHash);
-  window.addEventListener("hashchange", updateTitleFromHash);
-</script>
-
+    window.addEventListener("hashchange", () => {
+      updateTitleFromHash();
+      loadMarkdownPage();
+    });
+  </script>
 </body>
 </html>
