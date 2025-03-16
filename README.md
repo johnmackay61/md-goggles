@@ -6,6 +6,7 @@ MD-Goggles is a lightweight, client-side web application that interprets native 
 
 - **Hashbang-based routing:** Use URLs like `#!/page` to specify which Markdown file to load.
 - **Directory support:** Automatically loads `index.md` for directory URLs (e.g., `#!/docs/`).
+- **Automatic Title Tag re-write:** Outputs the file name as the Title Tag.
 - **404 fallback:** If a Markdown file isn’t found, the application loads a `404.md` file.
 - **Client-side only:** Built entirely with HTML, JavaScript, and libraries so it can run from disk without a server.
 - **XSS protection:** Uses [DOMPurify](https://github.com/cure53/DOMPurify) to sanitize HTML and prevent cross-site scripting vulnerabilities.
