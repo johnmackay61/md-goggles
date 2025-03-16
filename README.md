@@ -60,3 +60,5 @@ This project is licensed under the MIT License. See the LICENSE file for details
 ## Acknowledgments
 
 Special thanks to [ChatGPT](https://openai.com/chatgpt) by OpenAI for helping generate the code snippets, documentation, and ideas behind MD-Goggles.
+
+Big shout-out to Dynalon's [MDWiki](https://github.com/Dynalon/mdwiki) for the original idea which whilst still functioning does not appear to have been updated in some years.
